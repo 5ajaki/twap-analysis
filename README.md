@@ -11,7 +11,7 @@ Interactive visualization of TWAP (Time-Weighted Average Price) strategies compa
 
 ## Live Demo
 
-Visit [https://5ajaki.github.io/twap-analysis/](https://[your-github-username].github.io/twap-analysis/)
+Visit https://5ajaki.github.io/twap-analysis/
 
 ## Development
 
