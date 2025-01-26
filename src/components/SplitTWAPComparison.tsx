@@ -60,11 +60,45 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
               }
             />
             <Tooltip
-              formatter={(value: number) => [
-                `$${(value / 1000000).toFixed(2)}M`,
-                null,
-              ]}
+              formatter={(value: any, name: string) => {
+                if (name === "Cone of Uncertainty") {
+                  const color =
+                    period === 3
+                      ? "#16a34a"
+                      : period === 6
+                      ? "#2563eb"
+                      : "#dc2626";
+                  return value === null
+                    ? ["-", name]
+                    : [
+                        <span style={{ color: "black" }}>
+                          High:{" "}
+                          <span style={{ color }}>
+                            ${(value[1] / 1000000).toFixed(2)}M
+                          </span>
+                          <br />
+                          <strong>Expected:</strong>{" "}
+                          <span style={{ color }}>
+                            <strong>
+                              $
+                              {((value[1] + value[0]) / 2 / 1000000).toFixed(2)}
+                              M
+                            </strong>
+                          </span>
+                          <br />
+                          Low:{" "}
+                          <span style={{ color }}>
+                            ${(value[0] / 1000000).toFixed(2)}M
+                          </span>
+                        </span>,
+                        "",
+                      ];
+                }
+                return ["", ""];
+              }}
               labelFormatter={(value: number) => `Month ${value}`}
+              separator=""
+              contentStyle={{ whiteSpace: "pre-line" }}
             />
             <Legend />
 
