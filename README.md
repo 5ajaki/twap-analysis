@@ -1,13 +1,46 @@
 # TWAP Analysis Visualization
 
-Interactive visualization of TWAP (Time-Weighted Average Price) strategies comparing 6-month and 9-month execution periods.
+An interactive visualization tool for analyzing Time-Weighted Average Price (TWAP) strategies with different time horizons. The tool helps understand the balance trajectory and risk scenarios for various TWAP periods.
 
 ## Features
 
-- Comparison of 6-month vs 9-month TWAP strategies
-- Price uncertainty cones based on historical volatility
-- Critical price decline scenarios
-- Minimum safe balance tracking
+- Visualizes 3, 6, and 9-month TWAP strategies
+- Shows expected balance trajectory
+- Displays cone of uncertainty based on ETH price volatility
+- Interactive tooltips showing:
+  - High point of volatility cone
+  - Expected balance (bold)
+  - Low point of volatility cone
+- Critical decline scenarios for each TWAP period
+- Minimum safe balance reference line
+
+## Technical Details
+
+- Built with React and Recharts
+- Uses 45% annualized volatility for uncertainty calculations
+- Balance range at month t: Expected Balance ± (σ/√12) × √t
+- Shows critical price decline thresholds:
+  - 3-month TWAP: 75.0% decline ($3,200 to $800)
+  - 6-month TWAP: 53.0% decline ($3,200 to $1,504)
+  - 9-month TWAP: 26.0% decline ($3,200 to $2,368)
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Run the development server:
+
+```bash
+npm run dev
+```
+
+## Usage
+
+Hover over the charts to see detailed balance projections at each point in time. The shaded areas represent the cone of uncertainty, showing potential balance ranges based on ETH price volatility.
 
 ## Live Demo
 
