@@ -190,7 +190,7 @@ const SplitTWAPComparison: React.FC = () => {
       const twapCritical = remainingETH * criticalPrice * twapProgress;
 
       // Uncertainty bounds
-      const volatilityAtTime = MONTHLY_VOL * Math.sqrt(month);
+      const volatilityAtTime = MONTHLY_VOL * Math.sqrt(Math.min(month, period));
       const volatilityAmount = twapBase * volatilityAtTime;
 
       data.push({
