@@ -47,6 +47,7 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
           <ComposedChart
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            style={{ isolation: "isolate" }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
@@ -69,15 +70,7 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
 
             <Area
               name="Cone of Uncertainty"
-              dataKey="balanceUp"
-              stroke="none"
-              fill={
-                period === 3 ? "#86efac" : period === 6 ? "#93c5fd" : "#fca5a5"
-              }
-              fillOpacity={0.2}
-            />
-            <Area
-              dataKey="balanceDown"
+              dataKey="volatilityRange"
               stroke="none"
               fill={
                 period === 3 ? "#86efac" : period === 6 ? "#93c5fd" : "#fca5a5"
@@ -174,6 +167,10 @@ const SplitTWAPComparison: React.FC = () => {
         balanceUp: baseBalance + volatilityAmount,
         balanceDown: baseBalance - volatilityAmount,
         minSafe: MINIMUM_SAFE,
+        volatilityRange: [
+          baseBalance - volatilityAmount,
+          baseBalance + volatilityAmount,
+        ],
       });
     }
     return data;
