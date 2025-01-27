@@ -1,6 +1,8 @@
-# TWAP Analysis Viewer
+# TWAP Analysis Viewer (For KPK Temp Check)
 
-An interactive visualization tool for analyzing Time-Weighted Average Price (TWAP) strategies with different parameters and volatility scenarios.
+An interactive visualization tool for analyzing the different Time-Weighted Average Price (TWAP) strategies with different parameters and volatility scenarios.
+The is specific to the ENS DAO temp check at this link (https://discuss.ens.domains/t/temp-check-convert-6-000-eth-to-usdc-for-dao-operating-expenses/20138/3)
+
 
 ## Live Demo
 
