@@ -16,6 +16,7 @@ import {
 interface TWAPChartProps {
   data: any[];
   period: number;
+  minimumSafe: number;
 }
 
 interface ChartDataPoint {
@@ -23,7 +24,6 @@ interface ChartDataPoint {
   balanceBase: number;
   balanceUp: number;
   balanceDown: number;
-  minSafe: number;
   volatilityRange: number[];
   crossover: number | null;
 }
@@ -32,7 +32,7 @@ interface ChartData extends Array<ChartDataPoint> {
   crossoverMonth?: number | null;
 }
 
-const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
+const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
   return (
     <div className="w-full mb-8">
       <h3
@@ -54,7 +54,8 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="month"
-              tickFormatter={(value: number) => `Month ${value}`}
+              tickFormatter={(value: number) => `Month ${value.toFixed(1)}`}
+              ticks={Array.from({ length: 13 }, (_, i) => i)}
             />
             <YAxis
               tickFormatter={(value: number) =>
@@ -98,7 +99,7 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
                 }
                 return ["", ""];
               }}
-              labelFormatter={(value: number) => `Month ${value}`}
+              labelFormatter={(value: number) => `Month ${value.toFixed(1)}`}
               separator=""
               contentStyle={{ whiteSpace: "pre-line" }}
             />
@@ -127,13 +128,16 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
 
             <ReferenceLine y={0} stroke="#000" strokeOpacity={0.1} />
 
-            <Line
-              name="Minimum Safe Balance"
-              type="monotone"
-              dataKey="minSafe"
+            <ReferenceLine
+              y={minimumSafe}
               stroke="#4b5563"
               strokeWidth={2}
               strokeDasharray="3 3"
+              label={{
+                value: "Minimum Safe Balance",
+                position: "right",
+                style: { fill: "#4b5563" },
+              }}
             />
 
             <Scatter
@@ -182,8 +186,7 @@ const SplitTWAPComparison: React.FC = () => {
     let crossoverPoint: number | null = null;
     let lastBalance: number | null = null;
 
-    for (let month = 0; month <= 12; month += 0.1) {
-      // Use smaller steps for more precision
+    for (let month = 0; month <= 12; month += 0.05) {
       const immediateUSDC = IMMEDIATE_ETH * ETH_PRICE;
       const spent = MONTHLY_SPEND * month;
       const remainingETH = INITIAL_ETH - IMMEDIATE_ETH;
@@ -208,26 +211,37 @@ const SplitTWAPComparison: React.FC = () => {
         // Only capture first crossing
         // Linear interpolation to find exact crossing point
         const ratio = (MINIMUM_SAFE - lastBalance) / (lowerBound - lastBalance);
-        crossoverPoint = month - 0.1 + ratio * 0.1;
-        console.log(`Period ${period}: Crossing at month ${crossoverPoint}`);
+        crossoverPoint = month - 0.05 + ratio * 0.05;
+        console.log(`Period ${period}: Crossing details:`, {
+          month,
+          lastBalance,
+          lowerBound,
+          ratio,
+          crossoverPoint,
+          MINIMUM_SAFE,
+        });
       }
       lastBalance = lowerBound;
 
-      // Only push data points at whole months for display
-      if (Math.abs(month - Math.round(month)) < 0.01) {
-        data.push({
-          month: Math.round(month),
+      // Push data points at 0.1 month increments instead of just whole months
+      if (Math.abs(month * 10 - Math.round(month * 10)) < 0.01) {
+        const dataPoint = {
+          month: Math.round(month * 10) / 10, // Round to 1 decimal place
           balanceBase: baseBalance,
           balanceUp: baseBalance + volatilityAmount,
           balanceDown: lowerBound,
-          minSafe: MINIMUM_SAFE,
           volatilityRange: [lowerBound, baseBalance + volatilityAmount],
-          // Add crossover point if we're within 0.05 months of the crossing
           crossover:
-            crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.05
+            crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.1
               ? MINIMUM_SAFE
               : null,
+        };
+        console.log(`Period ${period}: Data point at month ${month}:`, {
+          month,
+          crossoverPoint: crossoverPoint,
+          showingDot: dataPoint.crossover !== null,
         });
+        data.push(dataPoint);
       }
     }
 
@@ -271,10 +285,28 @@ const SplitTWAPComparison: React.FC = () => {
             marginBottom: "0.5rem",
           }}
         >
-          <label htmlFor="volatility1" style={{ minWidth: "8rem" }}>
-            Annual Volatility:
+          <label
+            htmlFor="volatility1"
+            style={{
+              minWidth: "8rem",
+              fontWeight: "bold",
+              color: "#1a1a1a",
+              backgroundColor: "#e5e7eb",
+              padding: "0.5rem 0.75rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #d1d5db",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+            }}
+          >
+            Annual Volatility (adjust slider to change graphs):
           </label>
-          <span style={{ minWidth: "4rem" }}>
+          <span
+            style={{
+              minWidth: "4rem",
+              fontWeight: "bold",
+              color: "#1a1a1a",
+            }}
+          >
             {(annualVolatility * 100).toFixed(1)}%
           </span>
         </div>
@@ -290,9 +322,9 @@ const SplitTWAPComparison: React.FC = () => {
         />
       </div>
 
-      <TWAPChart data={data3m} period={3} />
-      <TWAPChart data={data6m} period={6} />
-      <TWAPChart data={data9m} period={9} />
+      <TWAPChart data={data3m} period={3} minimumSafe={MINIMUM_SAFE} />
+      <TWAPChart data={data6m} period={6} minimumSafe={MINIMUM_SAFE} />
+      <TWAPChart data={data9m} period={9} minimumSafe={MINIMUM_SAFE} />
 
       <div style={{ marginBottom: "2rem" }}>
         <div
@@ -303,10 +335,28 @@ const SplitTWAPComparison: React.FC = () => {
             marginBottom: "0.5rem",
           }}
         >
-          <label htmlFor="volatility2" style={{ minWidth: "8rem" }}>
-            Annual Volatility:
+          <label
+            htmlFor="volatility2"
+            style={{
+              minWidth: "8rem",
+              fontWeight: "bold",
+              color: "#1a1a1a",
+              backgroundColor: "#e5e7eb",
+              padding: "0.5rem 0.75rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #d1d5db",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+            }}
+          >
+            Annual Volatility (adjust slider to change graphs):
           </label>
-          <span style={{ minWidth: "4rem" }}>
+          <span
+            style={{
+              minWidth: "4rem",
+              fontWeight: "bold",
+              color: "#1a1a1a",
+            }}
+          >
             {(annualVolatility * 100).toFixed(1)}%
           </span>
         </div>
