@@ -70,13 +70,13 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
           }}
         >
           <p style={{ margin: 0, fontWeight: "500", color: "#854d0e" }}>
-            🔍 Crosses $2M safety threshold at{" "}
+            🔍 Could cross below $2M safety threshold at{" "}
             <span style={{ fontWeight: "bold", color: "#1a1a1a" }}>
               {data.crossoverMonth
                 ? `month ${data.crossoverMonth.toFixed(1)}`
                 : "no crossing"}
             </span>{" "}
-            at selected volatility of {(annualVolatility * 100).toFixed(1)}%
+            using selected volatility of {(annualVolatility * 100).toFixed(1)}%
           </p>
         </div>
       </div>
