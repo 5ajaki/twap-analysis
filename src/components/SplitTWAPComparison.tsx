@@ -143,6 +143,18 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
               shape="circle"
               legendType="none"
               r={6}
+              isAnimationActive={false}
+            />
+
+            {/* Add a second scatter to make the dot more visible */}
+            <Scatter
+              name=""
+              dataKey="crossover"
+              fill="#ef4444"
+              shape="circle"
+              legendType="none"
+              r={3}
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -210,8 +222,9 @@ const SplitTWAPComparison: React.FC = () => {
           balanceDown: lowerBound,
           minSafe: MINIMUM_SAFE,
           volatilityRange: [lowerBound, baseBalance + volatilityAmount],
+          // Add crossover point if we're within 0.05 months of the crossing
           crossover:
-            crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.1
+            crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.05
               ? MINIMUM_SAFE
               : null,
         });
