@@ -432,10 +432,12 @@ const SplitTWAPComparison: React.FC = () => {
             price volatility (shaded area)
           </li>
           <li>
-            Cone width calculation: Using {X}% annualized ETH volatility (σ), at
-            month t the **TWAP portion** varies by: ± (σ/√12) × √min(t,
-            TWAP_period) = ± {Y}% × √min(t, TWAP_period) This volatility impacts
-            only the ETH being sold via TWAP (not the stable USDC reserves).
+            Cone width calculation: Using {(annualVolatility * 100).toFixed(1)}%
+            annualized ETH volatility (σ), at month t the **TWAP portion**
+            varies by: ± (σ/√12) × √min(t, TWAP_period) = ±{" "}
+            {(MONTHLY_VOL * 100).toFixed(1)}% × √min(t, TWAP_period) This
+            volatility impacts only the ETH being sold via TWAP (not the stable
+            USDC reserves).
           </li>
         </ul>
       </div>
