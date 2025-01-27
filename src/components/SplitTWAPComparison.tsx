@@ -70,7 +70,7 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
           </p>
         </div>
       </div>
-      <div style={{ height: "24rem" }}>
+      <div style={{ height: "18rem" }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={data}
@@ -286,7 +286,9 @@ const SplitTWAPComparison: React.FC = () => {
     <div
       style={{
         width: "100%",
-        padding: "1rem",
+        maxWidth: "1400px",
+        padding: "2rem",
+        margin: "2rem auto",
         backgroundColor: "white",
         borderRadius: "0.5rem",
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
