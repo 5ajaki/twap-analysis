@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  Scatter,
 } from "recharts";
 
 interface TWAPChartProps {
@@ -120,6 +121,14 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
               strokeWidth={2}
               strokeDasharray="3 3"
             />
+
+            <Scatter
+              name=""
+              dataKey="crossover"
+              fill="#ef4444"
+              shape="circle"
+              legendType="none"
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -143,6 +152,8 @@ const SplitTWAPComparison: React.FC = () => {
 
   const generateData = (period: number) => {
     const data = [];
+    let crossoverPoint: number | null = null;
+    let lastBalance: number | null = null;
 
     for (let month = 0; month <= 12; month++) {
       const immediateUSDC = IMMEDIATE_ETH * ETH_PRICE;
@@ -157,17 +168,31 @@ const SplitTWAPComparison: React.FC = () => {
       // Uncertainty bounds based on TWAP period
       const volatilityAtTime = MONTHLY_VOL * Math.sqrt(Math.min(month, period));
       const volatilityAmount = twapUSDC * volatilityAtTime;
+      const lowerBound = baseBalance - volatilityAmount;
+
+      // Check if we cross minimum safe balance
+      if (
+        lastBalance !== null &&
+        lastBalance >= MINIMUM_SAFE &&
+        lowerBound < MINIMUM_SAFE
+      ) {
+        // Linear interpolation to find exact crossing point
+        const ratio = (MINIMUM_SAFE - lastBalance) / (lowerBound - lastBalance);
+        crossoverPoint = month - 1 + ratio;
+      }
+      lastBalance = lowerBound;
 
       data.push({
         month,
         balanceBase: baseBalance,
         balanceUp: baseBalance + volatilityAmount,
-        balanceDown: baseBalance - volatilityAmount,
+        balanceDown: lowerBound,
         minSafe: MINIMUM_SAFE,
-        volatilityRange: [
-          baseBalance - volatilityAmount,
-          baseBalance + volatilityAmount,
-        ],
+        volatilityRange: [lowerBound, baseBalance + volatilityAmount],
+        crossover:
+          crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.01
+            ? MINIMUM_SAFE
+            : null,
       });
     }
     return data;
