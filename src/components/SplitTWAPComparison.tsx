@@ -17,6 +17,7 @@ interface TWAPChartProps {
   data: ChartData;
   period: number;
   minimumSafe: number;
+  annualVolatility: number;
 }
 
 interface ChartDataPoint {
@@ -32,7 +33,12 @@ interface ChartData extends Array<ChartDataPoint> {
   crossoverMonth?: number | null;
 }
 
-const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
+const TWAPChart: React.FC<TWAPChartProps> = ({
+  data,
+  period,
+  minimumSafe,
+  annualVolatility,
+}) => {
   return (
     <div className="w-full mb-8">
       <div
@@ -56,17 +62,21 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
           style={{
             flex: 1,
             padding: "0.5rem 0.75rem",
-            backgroundColor: "#f3f4f6",
+            backgroundColor: "#fefce8",
             borderRadius: "0.375rem",
-            border: "1px solid #e5e7eb",
+            border: "1px solid #fef08a",
             fontSize: "0.875rem",
+            boxShadow: "0 1px 2px rgba(254, 240, 138, 0.1)",
           }}
         >
-          <p style={{ margin: 0, fontWeight: "500" }}>
-            🔍 Key Insight: Lower bound crosses minimum safe balance ($2M) at{" "}
+          <p style={{ margin: 0, fontWeight: "500", color: "#854d0e" }}>
+            🔍 Crosses $2M safety threshold at{" "}
             <span style={{ fontWeight: "bold", color: "#1a1a1a" }}>
-              month {data.crossoverMonth?.toFixed(1) || "N/A"}
-            </span>
+              {data.crossoverMonth
+                ? `month ${data.crossoverMonth.toFixed(1)}`
+                : "no crossing"}
+            </span>{" "}
+            at selected volatility of {(annualVolatility * 100).toFixed(1)}%
           </p>
         </div>
       </div>
@@ -80,7 +90,11 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="month"
-              tickFormatter={(value: number) => `Month ${value.toFixed(1)}`}
+              tickFormatter={(value: number) =>
+                `Month ${
+                  Number.isInteger(value) ? value.toString() : value.toFixed(1)
+                }`
+              }
               ticks={Array.from({ length: 13 }, (_, i) => i)}
             />
             <YAxis
@@ -307,97 +321,152 @@ const SplitTWAPComparison: React.FC = () => {
       <div style={{ marginBottom: "2rem" }}>
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            marginBottom: "0.5rem",
+            width: "50%",
+            padding: "1.5rem",
+            backgroundColor: "white",
+            borderRadius: "0.5rem",
+            boxShadow:
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            background: "linear-gradient(to bottom, #ffffff, #f9fafb)",
+            border: "1px solid #e5e7eb",
           }}
         >
-          <label
-            htmlFor="volatility1"
+          <div
             style={{
-              minWidth: "8rem",
-              fontWeight: "bold",
-              color: "#1a1a1a",
-              backgroundColor: "#e5e7eb",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #d1d5db",
-              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              marginBottom: "0.5rem",
             }}
           >
-            Annual Volatility (adjust slider to change graphs):
-          </label>
-          <span
+            <label
+              htmlFor="volatility1"
+              style={{
+                minWidth: "8rem",
+                fontWeight: "bold",
+                color: "#1a1a1a",
+                backgroundColor: "#e5e7eb",
+                padding: "0.5rem 0.75rem",
+                borderRadius: "0.375rem",
+                border: "1px solid #d1d5db",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              Annual Volatility (adjust slider to change graphs):
+            </label>
+            <span
+              style={{
+                minWidth: "4rem",
+                fontWeight: "bold",
+                color: "#1a1a1a",
+              }}
+            >
+              {(annualVolatility * 100).toFixed(1)}%
+            </span>
+          </div>
+          <input
+            id="volatility1"
+            type="range"
+            min="0.1"
+            max="1.0"
+            step="0.05"
+            value={annualVolatility}
+            onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
             style={{
-              minWidth: "4rem",
-              fontWeight: "bold",
-              color: "#1a1a1a",
+              width: "100%",
+              height: "8px",
+              WebkitAppearance: "none",
+              background: "linear-gradient(to right, #4f46e5, #818cf8)",
+              borderRadius: "4px",
+              cursor: "pointer",
             }}
-          >
-            {(annualVolatility * 100).toFixed(1)}%
-          </span>
+          />
         </div>
-        <input
-          id="volatility1"
-          type="range"
-          min="0.1"
-          max="1.0"
-          step="0.05"
-          value={annualVolatility}
-          onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
-          style={{ width: "100%" }}
-        />
       </div>
 
-      <TWAPChart data={data3m} period={3} minimumSafe={MINIMUM_SAFE} />
-      <TWAPChart data={data6m} period={6} minimumSafe={MINIMUM_SAFE} />
-      <TWAPChart data={data9m} period={9} minimumSafe={MINIMUM_SAFE} />
+      <TWAPChart
+        data={data3m}
+        period={3}
+        minimumSafe={MINIMUM_SAFE}
+        annualVolatility={annualVolatility}
+      />
+      <TWAPChart
+        data={data6m}
+        period={6}
+        minimumSafe={MINIMUM_SAFE}
+        annualVolatility={annualVolatility}
+      />
+      <TWAPChart
+        data={data9m}
+        period={9}
+        minimumSafe={MINIMUM_SAFE}
+        annualVolatility={annualVolatility}
+      />
 
       <div style={{ marginBottom: "2rem" }}>
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            marginBottom: "0.5rem",
+            width: "50%",
+            padding: "1.5rem",
+            backgroundColor: "white",
+            borderRadius: "0.5rem",
+            boxShadow:
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            background: "linear-gradient(to bottom, #ffffff, #f9fafb)",
+            border: "1px solid #e5e7eb",
           }}
         >
-          <label
-            htmlFor="volatility2"
+          <div
             style={{
-              minWidth: "8rem",
-              fontWeight: "bold",
-              color: "#1a1a1a",
-              backgroundColor: "#e5e7eb",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #d1d5db",
-              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              marginBottom: "0.5rem",
             }}
           >
-            Annual Volatility (adjust slider to change graphs):
-          </label>
-          <span
+            <label
+              htmlFor="volatility2"
+              style={{
+                minWidth: "8rem",
+                fontWeight: "bold",
+                color: "#1a1a1a",
+                backgroundColor: "#e5e7eb",
+                padding: "0.5rem 0.75rem",
+                borderRadius: "0.375rem",
+                border: "1px solid #d1d5db",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              Annual Volatility (adjust slider to change graphs):
+            </label>
+            <span
+              style={{
+                minWidth: "4rem",
+                fontWeight: "bold",
+                color: "#1a1a1a",
+              }}
+            >
+              {(annualVolatility * 100).toFixed(1)}%
+            </span>
+          </div>
+          <input
+            id="volatility2"
+            type="range"
+            min="0.1"
+            max="1.0"
+            step="0.05"
+            value={annualVolatility}
+            onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
             style={{
-              minWidth: "4rem",
-              fontWeight: "bold",
-              color: "#1a1a1a",
+              width: "100%",
+              height: "8px",
+              WebkitAppearance: "none",
+              background: "linear-gradient(to right, #4f46e5, #818cf8)",
+              borderRadius: "4px",
+              cursor: "pointer",
             }}
-          >
-            {(annualVolatility * 100).toFixed(1)}%
-          </span>
+          />
         </div>
-        <input
-          id="volatility2"
-          type="range"
-          min="0.1"
-          max="1.0"
-          step="0.05"
-          value={annualVolatility}
-          onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
-          style={{ width: "100%" }}
-        />
       </div>
 
       <div
