@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 interface TWAPChartProps {
-  data: any[];
+  data: ChartData;
   period: number;
   minimumSafe: number;
 }
@@ -35,15 +35,41 @@ interface ChartData extends Array<ChartDataPoint> {
 const TWAPChart: React.FC<TWAPChartProps> = ({ data, period, minimumSafe }) => {
   return (
     <div className="w-full mb-8">
-      <h3
+      <div
         style={{
-          fontSize: "1.125rem",
-          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
           marginBottom: "0.5rem",
         }}
       >
-        {period}-Month TWAP Analysis
-      </h3>
+        <h3
+          style={{
+            fontSize: "1.125rem",
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
+          {period}-Month TWAP Analysis
+        </h3>
+        <div
+          style={{
+            flex: 1,
+            padding: "0.5rem 0.75rem",
+            backgroundColor: "#f3f4f6",
+            borderRadius: "0.375rem",
+            border: "1px solid #e5e7eb",
+            fontSize: "0.875rem",
+          }}
+        >
+          <p style={{ margin: 0, fontWeight: "500" }}>
+            🔍 Key Insight: Lower bound crosses minimum safe balance ($2M) at{" "}
+            <span style={{ fontWeight: "bold", color: "#1a1a1a" }}>
+              month {data.crossoverMonth?.toFixed(1) || "N/A"}
+            </span>
+          </p>
+        </div>
+      </div>
       <div style={{ height: "24rem" }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
