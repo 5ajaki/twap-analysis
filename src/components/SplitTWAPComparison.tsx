@@ -258,7 +258,7 @@ const SplitTWAPComparison: React.FC = () => {
             marginBottom: "0.5rem",
           }}
         >
-          <label htmlFor="volatility" style={{ minWidth: "8rem" }}>
+          <label htmlFor="volatility1" style={{ minWidth: "8rem" }}>
             Annual Volatility:
           </label>
           <span style={{ minWidth: "4rem" }}>
@@ -266,7 +266,7 @@ const SplitTWAPComparison: React.FC = () => {
           </span>
         </div>
         <input
-          id="volatility"
+          id="volatility1"
           type="range"
           min="0.1"
           max="1.0"
@@ -281,6 +281,34 @@ const SplitTWAPComparison: React.FC = () => {
       <TWAPChart data={data6m} period={6} />
       <TWAPChart data={data9m} period={9} />
 
+      <div style={{ marginBottom: "2rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            marginBottom: "0.5rem",
+          }}
+        >
+          <label htmlFor="volatility2" style={{ minWidth: "8rem" }}>
+            Annual Volatility:
+          </label>
+          <span style={{ minWidth: "4rem" }}>
+            {(annualVolatility * 100).toFixed(1)}%
+          </span>
+        </div>
+        <input
+          id="volatility2"
+          type="range"
+          min="0.1"
+          max="1.0"
+          step="0.05"
+          value={annualVolatility}
+          onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
+          style={{ width: "100%" }}
+        />
+      </div>
+
       <div
         style={{
           marginTop: "1rem",
@@ -290,7 +318,8 @@ const SplitTWAPComparison: React.FC = () => {
         }}
       >
         <h3 style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>
-          Key Insights:
+          Key Insights (based on selected vol of{" "}
+          {(annualVolatility * 100).toFixed(1)}%):
         </h3>
         <ul style={{ listStyleType: "disc", paddingLeft: "1rem" }}>
           <li style={{ marginBottom: "0.5rem" }}>
