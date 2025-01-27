@@ -25,30 +25,22 @@ The is specific to the ENS DAO temp check at this link (https://discuss.ens.doma
 
 2. **Reading the Graphs**:
 
-   - Solid line: Expected balance trajectory
-   - Shaded area: Cone of uncertainty (possible balance range)
+   - Solid line: Expected balance trajectory if ETH value doesnt change during TWAP
+   - Shaded area: Cone of uncertainty (possible balance range created from volatility during TWAP
    - Dashed line: $2M minimum safe balance threshold
-   - Red dot: Point where lower bound crosses minimum safe balance
+   - Red dot: Point where lower bound crosses minimum safe balance (this recalculates dynamically)
 
-3. **Tooltips**: Hover over any point to see detailed values:
+3. **Tooltips**: Hover over any point to see detailed values for:
    - High balance estimate
    - Expected balance
    - Low balance estimate
 
-## Key Components
-
-- **Volatility Slider**: Adjust annual ETH price volatility from 10% to 100% to see how it affects each strategy
-- **Strategy Graphs**: Three separate graphs showing:
-  - Expected balance over time
-  - Cone of uncertainty (showing potential balance ranges)
-  - Minimum safe balance threshold ($2M)
-  - Red dot indicator when crossing below safety threshold
 
 ## Technical Details
 
 - Initial ETH: 6,000
 - Immediate ETH sale: 1,000
-- ETH Price: $3,200
+- ETH Price: $3,200 used for day 0 starting price
 - Monthly Spend: $1.46M
 - Minimum Safe Balance: $2M
 - Volatility calculation: Using monthly volatility (annual/√12) with time scaling
@@ -68,10 +60,10 @@ npm run build
 
 ## Implementation Notes
 
-- Uses React with TypeScript for type safety and better developer experience
-- Recharts for responsive and interactive visualizations
+- Uses React with TypeScript
+- Recharts 
 - Real-time calculations for uncertainty cones
-- Responsive design that works across different screen sizes
+- Responsive 
 
 ## Built With
 
