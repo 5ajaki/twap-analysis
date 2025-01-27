@@ -477,38 +477,19 @@ const SplitTWAPComparison: React.FC = () => {
           borderRadius: "0.25rem",
         }}
       >
-        <h3 style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>
-          Key Insights (based on selected vol of{" "}
-          {(annualVolatility * 100).toFixed(1)}%):
-        </h3>
-        <ul style={{ listStyleType: "disc", paddingLeft: "1rem" }}>
+        <h3 style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>Notes:</h3>
+        <ul style={{ listStyleType: "none", paddingLeft: "1rem" }}>
           <li style={{ marginBottom: "0.5rem" }}>
-            3-month TWAP: Lower bound crosses minimum safe balance ($2M) at
-            month {data3m.crossoverMonth?.toFixed(1) || "N/A"}
-          </li>
-          <li style={{ marginBottom: "0.5rem" }}>
-            6-month TWAP: Lower bound crosses minimum safe balance at month{" "}
-            {data6m.crossoverMonth?.toFixed(1) || "N/A"}
-          </li>
-          <li style={{ marginBottom: "0.5rem" }}>
-            9-month TWAP: Lower bound crosses minimum safe balance at month{" "}
-            {data9m.crossoverMonth?.toFixed(1) || "N/A"}
-          </li>
-          <li style={{ marginBottom: "0.5rem" }}>
-            Shorter TWAP periods reduce market exposure and narrow the cone of
+            * Shorter TWAP periods reduce market exposure and narrow the cone of
             uncertainty
           </li>
-          <li style={{ marginBottom: "0.5rem" }}>
-            The cone of uncertainty shows potential balance ranges based on ETH
-            price volatility (shaded area)
-          </li>
           <li>
-            Cone width calculation: Using {(annualVolatility * 100).toFixed(1)}%
-            annualized ETH volatility (σ), at month t the **TWAP portion**
-            varies by: ± (σ/√12) × √min(t, TWAP_period) = ±{" "}
-            {(MONTHLY_VOL * 100).toFixed(1)}% × √min(t, TWAP_period) This
-            volatility impacts only the ETH being sold via TWAP (not the stable
-            USDC reserves).
+            ** Cone width calculation: Using{" "}
+            {(annualVolatility * 100).toFixed(1)}% annualized ETH volatility
+            (σ), at month t the balance range is: Expected Balance ± (σ/√12) ×
+            √min(t, TWAP_period) = ± {(MONTHLY_VOL * 100).toFixed(1)}% × √min(t,
+            TWAP_period). This volatility impacts only the ETH being sold via
+            TWAP.
           </li>
         </ul>
       </div>
