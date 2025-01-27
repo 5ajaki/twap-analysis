@@ -4,8 +4,6 @@ An interactive visualization tool for analyzing the different Time-Weighted Aver
 The is specific to the ENS DAO temp check at this link (https://discuss.ens.domains/t/temp-check-convert-6-000-eth-to-usdc-for-dao-operating-expenses/20138/3)
 
 
-## Live Demo
-
 Visit [TWAP Analysis Viewer](https://5ajaki.github.io/twap-analysis/) to see the tool in action.
 
 ## Features
