@@ -134,7 +134,12 @@ const SplitTWAPComparison: React.FC = () => {
   const INITIAL_ETH = 6000;
   const IMMEDIATE_ETH = 1000;
   const ETH_PRICE = 3200;
-  const MONTHLY_VOL = 0.45 / Math.sqrt(12);
+  const BASE_ANNUAL_VOL = 0.45;
+
+  // State for volatility slider
+  const [annualVolatility, setAnnualVolatility] =
+    React.useState(BASE_ANNUAL_VOL);
+  const MONTHLY_VOL = annualVolatility / Math.sqrt(12);
 
   const generateData = (period: number) => {
     const data = [];
@@ -188,10 +193,36 @@ const SplitTWAPComparison: React.FC = () => {
         TWAP Strategy Comparison
       </h2>
 
+      <div style={{ marginBottom: "2rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            marginBottom: "0.5rem",
+          }}
+        >
+          <label htmlFor="volatility" style={{ minWidth: "8rem" }}>
+            Annual Volatility:
+          </label>
+          <span style={{ minWidth: "4rem" }}>
+            {(annualVolatility * 100).toFixed(1)}%
+          </span>
+        </div>
+        <input
+          id="volatility"
+          type="range"
+          min="0.1"
+          max="1.0"
+          step="0.05"
+          value={annualVolatility}
+          onChange={(e) => setAnnualVolatility(parseFloat(e.target.value))}
+          style={{ width: "100%" }}
+        />
+      </div>
+
       <TWAPChart data={generateData(3)} period={3} />
-
       <TWAPChart data={generateData(6)} period={6} />
-
       <TWAPChart data={generateData(9)} period={9} />
 
       <div
@@ -228,10 +259,10 @@ const SplitTWAPComparison: React.FC = () => {
             price volatility (shaded area)
           </li>
           <li>
-            Cone width calculation: Using 45% annualized volatility (σ), at
-            month t the balance range is: Expected Balance ± (σ/√12) × √min(t,
-            TWAP_period) = Expected Balance ± {(MONTHLY_VOL * 100).toFixed(1)}%
-            × √min(t, TWAP_period)
+            Cone width calculation: Using {(annualVolatility * 100).toFixed(1)}%
+            annualized volatility (σ), at month t the balance range is: Expected
+            Balance ± (σ/√12) × √min(t, TWAP_period) = Expected Balance ±{" "}
+            {(MONTHLY_VOL * 100).toFixed(1)}% × √min(t, TWAP_period)
           </li>
         </ul>
       </div>
