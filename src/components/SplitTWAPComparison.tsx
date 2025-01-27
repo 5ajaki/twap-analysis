@@ -18,6 +18,20 @@ interface TWAPChartProps {
   period: number;
 }
 
+interface ChartDataPoint {
+  month: number;
+  balanceBase: number;
+  balanceUp: number;
+  balanceDown: number;
+  minSafe: number;
+  volatilityRange: number[];
+  crossover: number | null;
+}
+
+interface ChartData extends Array<ChartDataPoint> {
+  crossoverMonth?: number | null;
+}
+
 const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
   return (
     <div className="w-full mb-8">
@@ -128,6 +142,7 @@ const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
               fill="#ef4444"
               shape="circle"
               legendType="none"
+              r={6}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -150,12 +165,13 @@ const SplitTWAPComparison: React.FC = () => {
     React.useState(BASE_ANNUAL_VOL);
   const MONTHLY_VOL = annualVolatility / Math.sqrt(12);
 
-  const generateData = (period: number) => {
-    const data = [];
+  const generateData = (period: number): ChartData => {
+    const data: ChartData = [];
     let crossoverPoint: number | null = null;
     let lastBalance: number | null = null;
 
-    for (let month = 0; month <= 12; month++) {
+    for (let month = 0; month <= 12; month += 0.1) {
+      // Use smaller steps for more precision
       const immediateUSDC = IMMEDIATE_ETH * ETH_PRICE;
       const spent = MONTHLY_SPEND * month;
       const remainingETH = INITIAL_ETH - IMMEDIATE_ETH;
@@ -174,29 +190,44 @@ const SplitTWAPComparison: React.FC = () => {
       if (
         lastBalance !== null &&
         lastBalance >= MINIMUM_SAFE &&
-        lowerBound < MINIMUM_SAFE
+        lowerBound < MINIMUM_SAFE &&
+        crossoverPoint === null
       ) {
+        // Only capture first crossing
         // Linear interpolation to find exact crossing point
         const ratio = (MINIMUM_SAFE - lastBalance) / (lowerBound - lastBalance);
-        crossoverPoint = month - 1 + ratio;
+        crossoverPoint = month - 0.1 + ratio * 0.1;
+        console.log(`Period ${period}: Crossing at month ${crossoverPoint}`);
       }
       lastBalance = lowerBound;
 
-      data.push({
-        month,
-        balanceBase: baseBalance,
-        balanceUp: baseBalance + volatilityAmount,
-        balanceDown: lowerBound,
-        minSafe: MINIMUM_SAFE,
-        volatilityRange: [lowerBound, baseBalance + volatilityAmount],
-        crossover:
-          crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.01
-            ? MINIMUM_SAFE
-            : null,
-      });
+      // Only push data points at whole months for display
+      if (Math.abs(month - Math.round(month)) < 0.01) {
+        data.push({
+          month: Math.round(month),
+          balanceBase: baseBalance,
+          balanceUp: baseBalance + volatilityAmount,
+          balanceDown: lowerBound,
+          minSafe: MINIMUM_SAFE,
+          volatilityRange: [lowerBound, baseBalance + volatilityAmount],
+          crossover:
+            crossoverPoint !== null && Math.abs(month - crossoverPoint) < 0.1
+              ? MINIMUM_SAFE
+              : null,
+        });
+      }
     }
+
+    // Store crossover point for key insights
+    data.crossoverMonth = crossoverPoint;
+
     return data;
   };
+
+  // Memoize the data calculations
+  const data3m = React.useMemo(() => generateData(3), [annualVolatility]);
+  const data6m = React.useMemo(() => generateData(6), [annualVolatility]);
+  const data9m = React.useMemo(() => generateData(9), [annualVolatility]);
 
   return (
     <div
@@ -246,9 +277,9 @@ const SplitTWAPComparison: React.FC = () => {
         />
       </div>
 
-      <TWAPChart data={generateData(3)} period={3} />
-      <TWAPChart data={generateData(6)} period={6} />
-      <TWAPChart data={generateData(9)} period={9} />
+      <TWAPChart data={data3m} period={3} />
+      <TWAPChart data={data6m} period={6} />
+      <TWAPChart data={data9m} period={9} />
 
       <div
         style={{
@@ -263,17 +294,16 @@ const SplitTWAPComparison: React.FC = () => {
         </h3>
         <ul style={{ listStyleType: "disc", paddingLeft: "1rem" }}>
           <li style={{ marginBottom: "0.5rem" }}>
-            3-month TWAP: Lower bound of uncertainty cone hits zero at month
-            11.2, meaning there's a ~2σ (95%) chance of maintaining positive
-            balance through the year
+            3-month TWAP: Lower bound crosses minimum safe balance ($2M) at
+            month {data3m.crossoverMonth?.toFixed(1) || "N/A"}
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
-            6-month TWAP: Lower bound hits zero at month 10.5, with wider
-            uncertainty due to longer execution period
+            6-month TWAP: Lower bound crosses minimum safe balance at month{" "}
+            {data6m.crossoverMonth?.toFixed(1) || "N/A"}
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
-            9-month TWAP: Lower bound hits zero at month 9.8, showing highest
-            risk due to extended market exposure
+            9-month TWAP: Lower bound crosses minimum safe balance at month{" "}
+            {data9m.crossoverMonth?.toFixed(1) || "N/A"}
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
             Shorter TWAP periods reduce market exposure and narrow the cone of
