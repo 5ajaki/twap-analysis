@@ -15,16 +15,9 @@ import {
 interface TWAPChartProps {
   data: any[];
   period: number;
-  criticalDecline: number;
-  criticalMonth: string;
 }
 
-const TWAPChart: React.FC<TWAPChartProps> = ({
-  data,
-  period,
-  criticalDecline,
-  criticalMonth,
-}) => {
+const TWAPChart: React.FC<TWAPChartProps> = ({ data, period }) => {
   return (
     <div className="w-full mb-8">
       <h3
@@ -36,12 +29,6 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
       >
         {period}-Month TWAP Analysis
       </h3>
-      <div
-        style={{ fontSize: "0.875rem", color: "#4B5563", marginBottom: "1rem" }}
-      >
-        Critical price decline would require: {criticalDecline}% (hits minimum
-        safe balance at month {criticalMonth})
-      </div>
       <div style={{ height: "24rem" }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
@@ -126,17 +113,6 @@ const TWAPChart: React.FC<TWAPChartProps> = ({
             <ReferenceLine y={0} stroke="#000" strokeOpacity={0.1} />
 
             <Line
-              name="Critical Decline Scenario"
-              type="monotone"
-              dataKey="balanceCritical"
-              stroke={
-                period === 3 ? "#15803d" : period === 6 ? "#1e40af" : "#991b1b"
-              }
-              strokeWidth={2}
-              strokeDasharray="5 5"
-            />
-
-            <Line
               name="Minimum Safe Balance"
               type="monotone"
               dataKey="minSafe"
@@ -160,44 +136,26 @@ const SplitTWAPComparison: React.FC = () => {
   const ETH_PRICE = 3200;
   const MONTHLY_VOL = 0.45 / Math.sqrt(12);
 
-  // Critical points
-  const CRITICAL_POINTS = {
-    3: { decline: 75.0, month: 2.8 },
-    6: { decline: 53.0, month: 5.9 },
-    9: { decline: 26.0, month: 8.5 },
-  };
-
-  const generateData = (
-    period: number,
-    criticalPoint: { decline: number; month: number }
-  ) => {
+  const generateData = (period: number) => {
     const data = [];
 
     for (let month = 0; month <= 12; month++) {
-      const baseUSDC = IMMEDIATE_ETH * ETH_PRICE;
+      const immediateUSDC = IMMEDIATE_ETH * ETH_PRICE;
       const spent = MONTHLY_SPEND * month;
-
-      // Calculate TWAP amounts
-      const twapProgress = Math.min(month / period, 1);
       const remainingETH = INITIAL_ETH - IMMEDIATE_ETH;
 
-      // Base case
-      const twapBase = remainingETH * ETH_PRICE * twapProgress;
-      const baseBalance = baseUSDC + twapBase - spent;
+      // Base case (no decline)
+      const twapProgress = Math.min(month / period, 1);
+      const twapUSDC = remainingETH * ETH_PRICE * twapProgress;
+      const baseBalance = immediateUSDC + twapUSDC - spent;
 
-      // Critical decline case - only calculate if before critical month
-      const criticalPrice = ETH_PRICE * (1 - criticalPoint.decline / 100);
-      const twapCritical = remainingETH * criticalPrice * twapProgress;
-
-      // Uncertainty bounds
+      // Uncertainty bounds based on TWAP period
       const volatilityAtTime = MONTHLY_VOL * Math.sqrt(Math.min(month, period));
-      const volatilityAmount = twapBase * volatilityAtTime;
+      const volatilityAmount = twapUSDC * volatilityAtTime;
 
       data.push({
         month,
         balanceBase: baseBalance,
-        balanceCritical:
-          month <= criticalPoint.month ? baseUSDC + twapCritical - spent : null,
         balanceUp: baseBalance + volatilityAmount,
         balanceDown: baseBalance - volatilityAmount,
         minSafe: MINIMUM_SAFE,
@@ -230,26 +188,11 @@ const SplitTWAPComparison: React.FC = () => {
         TWAP Strategy Comparison
       </h2>
 
-      <TWAPChart
-        data={generateData(3, CRITICAL_POINTS[3])}
-        period={3}
-        criticalDecline={CRITICAL_POINTS[3].decline}
-        criticalMonth={CRITICAL_POINTS[3].month.toFixed(1)}
-      />
+      <TWAPChart data={generateData(3)} period={3} />
 
-      <TWAPChart
-        data={generateData(6, CRITICAL_POINTS[6])}
-        period={6}
-        criticalDecline={CRITICAL_POINTS[6].decline}
-        criticalMonth={CRITICAL_POINTS[6].month.toFixed(1)}
-      />
+      <TWAPChart data={generateData(6)} period={6} />
 
-      <TWAPChart
-        data={generateData(9, CRITICAL_POINTS[9])}
-        period={9}
-        criticalDecline={CRITICAL_POINTS[9].decline}
-        criticalMonth={CRITICAL_POINTS[9].month.toFixed(1)}
-      />
+      <TWAPChart data={generateData(9)} period={9} />
 
       <div
         style={{
@@ -264,22 +207,21 @@ const SplitTWAPComparison: React.FC = () => {
         </h3>
         <ul style={{ listStyleType: "disc", paddingLeft: "1rem" }}>
           <li style={{ marginBottom: "0.5rem" }}>
-            3-month TWAP can sustain a 75.0% absolute price decline (from $3,200
-            to $800) over the 3-month period while maintaining minimum safe
-            balance
+            3-month TWAP: Lower bound of uncertainty cone hits zero at month
+            11.2, meaning there's a ~2σ (95%) chance of maintaining positive
+            balance through the year
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
-            6-month TWAP can sustain a 53.0% absolute price decline (from $3,200
-            to $1,504) over the 6-month period while maintaining minimum safe
-            balance
+            6-month TWAP: Lower bound hits zero at month 10.5, with wider
+            uncertainty due to longer execution period
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
-            9-month TWAP is more vulnerable to price declines, with a critical
-            threshold of 26.0% (from $3,200 to $2,368) over the 9-month period
+            9-month TWAP: Lower bound hits zero at month 9.8, showing highest
+            risk due to extended market exposure
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
-            Critical decline lines stop when balance hits minimum safe level
-            ($2M)
+            Shorter TWAP periods reduce market exposure and narrow the cone of
+            uncertainty
           </li>
           <li style={{ marginBottom: "0.5rem" }}>
             The cone of uncertainty shows potential balance ranges based on ETH
@@ -287,8 +229,9 @@ const SplitTWAPComparison: React.FC = () => {
           </li>
           <li>
             Cone width calculation: Using 45% annualized volatility (σ), at
-            month t the balance range is: Expected Balance ± (σ/√12) × √t =
-            Expected Balance ± {(MONTHLY_VOL * 100).toFixed(1)}% × √t
+            month t the balance range is: Expected Balance ± (σ/√12) × √min(t,
+            TWAP_period) = Expected Balance ± {(MONTHLY_VOL * 100).toFixed(1)}%
+            × √min(t, TWAP_period)
           </li>
         </ul>
       </div>
